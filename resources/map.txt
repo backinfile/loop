@@ -1,0 +1,12 @@
+size=9*9
+out=3,7,3,5
+map=
+wwwwwwwww
+ww      w
+wwt m   w
+ww      w
+ww ww b  
+ww  w   w
+ww wwwwww
+ww  wwwww
+wwwwwwwww
