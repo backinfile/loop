@@ -63,39 +63,28 @@ public class WorldView extends Group {
 		}
 		lastFrame = getScreen();
 	}
-
-	private float m_fboScaler = 1.5f;
-	private boolean m_fboEnabled = true;
-	private FrameBuffer m_fbo = null;
-	private TextureRegion m_fboRegion = null;
-
-	public void render(SpriteBatch spriteBatch) {
-		int width = Gdx.graphics.getWidth();
-		int height = Gdx.graphics.getHeight();
-
-		if (m_fboEnabled) // enable or disable the supersampling
-		{
-			if (m_fbo == null) {
-				// m_fboScaler increase or decrease the antialiasing quality
-
-				m_fbo = new FrameBuffer(Format.RGB565, (int) (width * m_fboScaler), (int) (height * m_fboScaler),
-						false);
-				m_fboRegion = new TextureRegion(m_fbo.getColorBufferTexture());
-				m_fboRegion.flip(false, true);
-			}
-
-			m_fbo.begin();
-		}
-
-		// this is the main render function
-//		my_render_impl();
-
-		if (m_fbo != null) {
-			m_fbo.end();
-
-			spriteBatch.begin();
-			spriteBatch.draw(m_fboRegion, 0, 0, width, height);
-			spriteBatch.end();
-		}
-	}
+	/*
+	 * private float m_fboScaler = 1.5f; private boolean m_fboEnabled = true;
+	 * private FrameBuffer m_fbo = null; private TextureRegion m_fboRegion = null;
+	 * 
+	 * public void render(SpriteBatch spriteBatch) { int width =
+	 * Gdx.graphics.getWidth(); int height = Gdx.graphics.getHeight();
+	 * 
+	 * if (m_fboEnabled) // enable or disable the supersampling { if (m_fbo == null)
+	 * { // m_fboScaler increase or decrease the antialiasing quality
+	 * 
+	 * m_fbo = new FrameBuffer(Format.RGB565, (int) (width * m_fboScaler), (int)
+	 * (height * m_fboScaler), false); m_fboRegion = new
+	 * TextureRegion(m_fbo.getColorBufferTexture()); m_fboRegion.flip(false, true);
+	 * }
+	 * 
+	 * m_fbo.begin(); }
+	 * 
+	 * // this is the main render function // my_render_impl();
+	 * 
+	 * if (m_fbo != null) { m_fbo.end();
+	 * 
+	 * spriteBatch.begin(); spriteBatch.draw(m_fboRegion, 0, 0, width, height);
+	 * spriteBatch.end(); } }
+	 */
 }
