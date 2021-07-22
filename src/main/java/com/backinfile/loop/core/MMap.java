@@ -1,33 +1,34 @@
 package com.backinfile.loop.core;
 
 import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.StringJoiner;
 import java.util.function.BiConsumer;
 
-public class MMap<T> {
+public class MMap<T extends Movable> {
 	private int width;
 	private int height;
-	private Object[][] map;
+	private List<T> valueList = new ArrayList<>();
 
 	public MMap(int width, int height) {
 		this.width = width;
 		this.height = height;
-		this.map = new Object[width][height];
 	}
 
-	public void set(int x, int y, T value) {
-		checkSize(x, y);
-		map[x][y] = value;
+	public void add(T value) {
+		checkSize(value.pos.x, value.pos.y);
+		valueList.add(value);
 	}
 
-	public void set(Pos pos, T value) {
-		set(pos.x, pos.y, value);
-	}
-
-	@SuppressWarnings("unchecked")
 	public T get(int x, int y) {
 		checkSize(x, y);
-		return (T) map[x][y];
+		for (T value : valueList) {
+			if (value.pos.x == x && value.pos.y == y) {
+				return value;
+			}
+		}
+		return null;
 	}
 
 	public T get(Pos pos) {
@@ -60,25 +61,18 @@ public class MMap<T> {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	public void forEach(BiConsumer<Pos, T> func) {
-		for (int i = 0; i < width; i++) {
-			for (int j = 0; j < height; j++) {
-				func.accept(new Pos(i, j), (T) map[i][j]);
-			}
+		for (T value : valueList) {
+			func.accept(value.pos, value);
 		}
 	}
 
 	@Override
 	public String toString() {
 		StringJoiner sj = new StringJoiner("\n");
-		for (int i = 0; i < width; i++) {
-			for (int j = 0; j < height; j++) {
-				if (map[i][j] != null) {
-					sj.add("(" + i + "," + j + "," + map[i][j].toString() + ")");
-				}
-			}
-		}
+		forEach((pos, value) -> {
+			sj.add("(" + pos.x + "," + pos.y + "," + value.toString() + ")");
+		});
 		return sj.toString();
 	}
 }

@@ -11,6 +11,33 @@ public class Pos {
 		this.y = y;
 	}
 
+	public Pos getTransPos(int dx, int dy) {
+		return new Pos(this.x + dx, this.y + dy);
+	}
+
+	public Pos getTransPos(Pos dPos) {
+		return new Pos(this.x + dPos.x, this.y + dPos.y);
+	}
+
+	public void trans(Pos dPos) {
+		this.x += dPos.x;
+		this.y += dPos.y;
+	}
+
+	public void set(int x, int y) {
+		this.x = x;
+		this.y = y;
+	}
+
+	public void set(Pos pos) {
+		this.x = pos.x;
+		this.y = pos.y;
+	}
+	
+	public Pos copy() {
+		return new Pos(x, y);
+	}
+
 	@Override
 	public boolean equals(Object other) {
 		if (this == other) {

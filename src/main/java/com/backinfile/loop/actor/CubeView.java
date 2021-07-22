@@ -4,8 +4,6 @@ import com.backinfile.loop.Res;
 import com.backinfile.loop.core.Cube;
 import com.backinfile.loop.core.Cube.CubeType;
 import com.backinfile.loop.core.GameManager;
-import com.badlogic.gdx.graphics.Pixmap;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.Group;
@@ -42,7 +40,6 @@ public class CubeView extends Group {
 		default:
 			break;
 		}
-
 	}
 
 	public void setBorder(boolean white) {

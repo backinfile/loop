@@ -39,7 +39,7 @@ public class WorldData {
 				for (int h = 0; h < world.baseHeight; h++) {
 					String line = confs[index + h + 1];
 					for (int w = 0; w < world.baseWidth; w++) {
-						Cube cube;
+						Cube cube = null;
 						switch (line.charAt(w)) {
 						case 'w':
 							cube = new Cube(CubeType.Wall);
@@ -54,11 +54,12 @@ public class WorldData {
 							cube = new Cube(CubeType.Rock);
 							break;
 						default:
-							cube = new Cube(CubeType.Empty);
 							break;
 						}
-						cube.setPosition(w, world.baseHeight - h - 1);
-						world.actualMap.set(w, world.baseHeight - h - 1, cube);
+						if (cube != null) {
+							cube.setPosition(w, world.baseHeight - h - 1);
+							world.actualMap.add(cube);
+						}
 					}
 				}
 				index += world.baseHeight + 1;

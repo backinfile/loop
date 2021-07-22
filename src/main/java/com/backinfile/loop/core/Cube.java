@@ -1,8 +1,7 @@
 package com.backinfile.loop.core;
 
-public class Cube {
+public class Cube extends Movable {
 	public CubeType type;
-	public Pos pos = new Pos(0, 0);
 
 	public static enum CubeType {
 		Empty, Wall, Rock, Human, Trans;
