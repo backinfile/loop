@@ -62,7 +62,7 @@ public class MMap<T extends Movable> {
 	}
 
 	public void forEach(BiConsumer<Pos, T> func) {
-		for (T value : valueList) {
+		for (T value : new ArrayList<>(valueList)) {
 			func.accept(value.pos, value);
 		}
 	}

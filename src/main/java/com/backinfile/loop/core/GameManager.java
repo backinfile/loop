@@ -1,10 +1,13 @@
 package com.backinfile.loop.core;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 import com.backinfile.loop.Res;
 import com.backinfile.loop.actor.WorldView;
 import com.backinfile.loop.core.Cube.CubeType;
+import com.backinfile.loop.support.Utils;
 
 public class GameManager {
 	public static final GameManager instance = new GameManager();
@@ -13,6 +16,8 @@ public class GameManager {
 	public WorldView worldView;
 	private Cube human;
 	private Cube trans;
+
+	private LinkedList<History> histories = new LinkedList<History>();
 
 	private static final int[] dx = new int[] { 0, 0, -1, 1 };
 	private static final int[] dy = new int[] { 1, -1, 0, 0 };
@@ -29,37 +34,70 @@ public class GameManager {
 		});
 	}
 
+	public void resetGame() {
+		worldData.actualMap.forEach((pos, cube) -> {
+			cube.resetPosition();
+		});
+		histories.clear();
+	}
+
+	public void undo() {
+		if (!histories.isEmpty()) {
+			History history = histories.pollLast();
+			history.playback();
+		}
+	}
+
 	public WorldData getWorldData() {
 		return worldData;
 	}
 
+	public Pos getWorldSize() {
+		return new Pos(Res.CUBE_SIZE * worldData.baseWidth, Res.CUBE_SIZE * worldData.baseWidth);
+	}
+	
 	private boolean moveCube(Pos curPos, Pos d, ArrayList<Pos> passPosList) {
-		main: while (true) {
+		while (true) {
 			Pos nextPos = getNextPos(curPos, d);
-			if (nextPos != null && passPosList.contains(nextPos)) {
-				// 循环达成， 不可以移动
+			if (nextPos != null && passPosList.contains(nextPos)) { // 循环达成， 不可以移动
 				return false;
 			}
-			if (nextPos == null || isPosStop(nextPos)) {
-				for (int i = passPosList.size() - 1; i >= 0; i--) {
-					if (isPosTrans(passPosList.get(i))) {
-						Pos edgeEmptyPos = getEdgeEmptyPos(d);
-						if (edgeEmptyPos == null) {
-							// 移动或推动尝试进入方块，但卡在墙边
-							return false;
-						}
-						passPosList = new ArrayList<Pos>(passPosList.subList(0, i));
-						passPosList.add(edgeEmptyPos);
+			if (nextPos == null || isPosStop(nextPos)) { // 碰到墙了
+				// 尝试找到路径中的分型
+				for (Integer index : getSplitByTransPosList(passPosList)) {
+					Pos transPos = passPosList.get(index);
 
+					ArrayList<Pos> newPassPosList = Utils.subList(passPosList, 0, index);
+					Pos edgeEmptyPos = getEdgeEmptyPos(d);
+					if (edgeEmptyPos != null) { // 移动或推动尝试进入分型，没有卡在墙边
+						newPassPosList.add(edgeEmptyPos);
 						if (isPosEmpty(edgeEmptyPos)) {
-							passPosList.add(edgeEmptyPos);
-							_moveCubePosList(passPosList);
+							newPassPosList.add(edgeEmptyPos);
+							_moveCubePosList(newPassPosList);
 							// 顺利移动或者推动进入方块
 							return true;
 						} else {
-							// 移动或推动尝试进入方块
-							curPos = edgeEmptyPos;
-							continue main;
+							if (moveCube(edgeEmptyPos, d, new ArrayList<>(newPassPosList))) {
+								// 移动或推动尝试进入方块 成功
+								return true;
+							}
+						}
+					}
+					// 尝试吞掉方块
+					if (index < passPosList.size() - 1) {
+						edgeEmptyPos = getEdgeEmptyPos(d.getOppsite());
+						if (edgeEmptyPos != null) {
+							newPassPosList.add(transPos);
+							newPassPosList.add(passPosList.get(index + 1));
+							newPassPosList.add(edgeEmptyPos);
+							if (isPosEmpty(edgeEmptyPos)) { // 分型内部为空，直接移动过去
+								_moveCubePosList(newPassPosList);
+								return true;
+							}
+							if (moveCube(edgeEmptyPos, d.getOppsite(), new ArrayList<Pos>(newPassPosList))) {
+								// 分型内部可以移动
+								return true;
+							}
 						}
 					}
 				}
@@ -77,7 +115,34 @@ public class GameManager {
 		}
 	}
 
+	private List<Integer> getSplitByTransPosList(List<Pos> posList) {
+		List<Integer> indexList = new ArrayList<>();
+		for (int i = posList.size() - 1; i >= 0; i--) {
+			if (isPosTrans(posList.get(i))) {
+				indexList.add(i);
+			}
+		}
+		return indexList;
+	}
+
 	private void _moveCubePosList(ArrayList<Pos> posList) {
+		if (posList.isEmpty()) {
+			return;
+		}
+
+		// 记录操作
+		List<Cube> cubes = new ArrayList<>();
+		for (Pos pos : posList) {
+			Cube cube = worldData.actualMap.get(pos);
+			if (cube != null) {
+				cubes.add(cube);
+			}
+		}
+		if (!cubes.isEmpty()) {
+			histories.addLast(History.getHistory(cubes));
+		}
+
+		// 进行移动
 		for (int i = 0; i < posList.size() - 1; i++) {
 			posList.get(i).set(posList.get(i + 1));
 		}

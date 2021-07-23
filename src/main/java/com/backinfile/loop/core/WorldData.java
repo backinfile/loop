@@ -58,6 +58,7 @@ public class WorldData {
 						}
 						if (cube != null) {
 							cube.setPosition(w, world.baseHeight - h - 1);
+							cube.setOriPosition(w, world.baseHeight - h - 1);
 							world.actualMap.add(cube);
 						}
 					}

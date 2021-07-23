@@ -1,12 +1,16 @@
+name=main
 size=9*9
-out=3,7,3,5
+shape_size=2*2
+shape=
+01
+11
 map=
-wwwwwbwww
-ww      w
-ww m b  w
-ww   b  w
-ww wwt  
-ww  wb  w
 ww wwbwww
-ww  wbwww
-wwwwwbwww
+ww      w
+ww   b  w
+w    b  w
+ww    b  
+ww   b  w
+ww mtbbww
+ww     ww
+wwwww www

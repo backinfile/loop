@@ -37,6 +37,10 @@ public class Pos {
 	public Pos copy() {
 		return new Pos(x, y);
 	}
+	
+	public Pos getOppsite() {
+		return new Pos(-x, -y);
+	}
 
 	@Override
 	public boolean equals(Object other) {

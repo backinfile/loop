@@ -4,6 +4,7 @@ import com.backinfile.loop.Res;
 import com.backinfile.loop.core.Cube;
 import com.backinfile.loop.core.Cube.CubeType;
 import com.backinfile.loop.core.GameManager;
+import com.backinfile.loop.core.Pos;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.Group;
@@ -11,7 +12,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 
 public class CubeView extends Group {
-	private Cube cube;
+	public final Cube cube;
 	private Image mainImage;
 	private Image border = new Image(Res.CUBE_BORDER_BLACK);
 
@@ -40,6 +41,7 @@ public class CubeView extends Group {
 		default:
 			break;
 		}
+		setSize(Res.CUBE_SIZE, Res.CUBE_SIZE);
 	}
 
 	public void setBorder(boolean white) {
@@ -61,13 +63,13 @@ public class CubeView extends Group {
 	public void draw(Batch batch, float parentAlpha) {
 		super.draw(batch, parentAlpha);
 
-		if (cube.type != CubeType.Trans) {
-			return;
-		}
-		TextureRegion screen = GameManager.instance.worldView.getLastFrame();
-		if (screen != null) {
-			batch.draw(screen, getX(), getY(), Res.CUBE_HUMAN.getRegionWidth(), Res.CUBE_HUMAN.getRegionHeight());
-		}
+//		if (cube.type != CubeType.Trans) {
+//			return;
+//		}
+//		TextureRegion screen = GameManager.instance.worldView.getLastFrame();
+//		if (screen != null) {
+//			batch.draw(screen, getX(), getY(), Res.CUBE_HUMAN.getRegionWidth(), Res.CUBE_HUMAN.getRegionHeight());
+//		}
 	}
 
 }

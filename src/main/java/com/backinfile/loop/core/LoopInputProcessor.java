@@ -24,6 +24,12 @@ public class LoopInputProcessor implements InputProcessor {
 		case Keys.D:
 			GameManager.instance.moveHuman(3);
 			break;
+		case Keys.R:
+			GameManager.instance.resetGame();
+			break;
+		case Keys.Z:
+			GameManager.instance.undo();
+			break;
 		default:
 			break;
 		}
