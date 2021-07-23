@@ -10,7 +10,7 @@ public class DesktopLauncher {
 		LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
 		config.width = Settings.SCREEN_WIDTH;
 		config.height = Settings.SCREEN_HEIGHT;
-		config.resizable = true;
+		config.resizable = Settings.RESIZABLE;
 		Log.core.info("enter game");
 
 		new LwjglApplication(new MainGame(), config);

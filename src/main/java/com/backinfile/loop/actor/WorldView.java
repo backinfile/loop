@@ -111,13 +111,15 @@ public class WorldView extends Group {
 		if (m_fbo != null) {
 			m_fbo.end();
 
-			batch.draw(m_fboRegion, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-			// 绘制分形
 			Pos worldSize = GameManager.instance.getWorldSize();
+			int offsetX = (Gdx.graphics.getWidth() - worldSize.x) / 2;
+			int offsetY = (Gdx.graphics.getHeight() - worldSize.y) / 2;
+			batch.draw(m_fboRegion, offsetX, offsetY, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+			// 绘制分形
 			for (CubeView cubeView : cubeViews) {
 				if (cubeView.cube.type == CubeType.Trans) {
-					batch.draw(gameScenceRegion, cubeView.getX(), cubeView.getY(), cubeView.getWidth(),
-							cubeView.getHeight());
+					batch.draw(gameScenceRegion, cubeView.getX() + offsetX, cubeView.getY() + offsetY,
+							cubeView.getWidth(), cubeView.getHeight());
 				}
 			}
 		}

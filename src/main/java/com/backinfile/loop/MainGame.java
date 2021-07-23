@@ -33,7 +33,6 @@ public class MainGame extends Game {
 		stage = new Stage(new FitViewport(Settings.SCREEN_WIDTH, Settings.SCREEN_HEIGHT, camera));
 		stage.addActor(new WorldView());
 		Gdx.input.setInputProcessor(new LoopInputProcessor());
-
 	}
 
 	@Override

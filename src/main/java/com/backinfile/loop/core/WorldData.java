@@ -8,7 +8,10 @@ import com.backinfile.loop.core.Cube.CubeType;
 public class WorldData {
 	public int baseWidth;
 	public int baseHeight;
+	public int shapeWidth;
+	public int shapeHeight;
 	public MMap<Cube> actualMap;
+	public List<Cube> transCubeList = new ArrayList<>();
 	public List<Pos> winPosList = new ArrayList<Pos>();
 	public Pos humanWinPos;
 

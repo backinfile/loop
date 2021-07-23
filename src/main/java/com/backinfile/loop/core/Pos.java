@@ -3,8 +3,9 @@ package com.backinfile.loop.core;
 import java.util.Objects;
 
 public class Pos {
-	public int x;
-	public int y;
+	public int x = 0;
+	public int y = 0;
+	public int z = 0;
 
 	public Pos(int x, int y) {
 		this.x = x;
@@ -33,11 +34,11 @@ public class Pos {
 		this.x = pos.x;
 		this.y = pos.y;
 	}
-	
+
 	public Pos copy() {
 		return new Pos(x, y);
 	}
-	
+
 	public Pos getOppsite() {
 		return new Pos(-x, -y);
 	}
