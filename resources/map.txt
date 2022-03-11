@@ -1,16 +1,41 @@
-name=main
+levels=level1,level2,level3
+
+name=level1
+size=7*7
+out=4,5,3,5
+map=
+wwwwwww
+w     w
+w  t  w
+www www
+w m
+w     w
+wwwwwww
+
+name=level2
 size=9*9
-shape_size=2*2
-shape=
-01
-11
+out=2,3
 map=
 ww wwbwww
 ww      w
 ww   b  w
 w    b  w
-ww    b  
+ww    b
 ww   b  w
-ww mtbbww
-ww     ww
+ww mtbb w
+ww      w
 wwwww www
+
+name=level3
+size=9*9
+out=
+map=
+wwww wwww
+w       w
+w       w
+w       w
+
+w       w
+w  mt   w
+w       w
+wwww wwww

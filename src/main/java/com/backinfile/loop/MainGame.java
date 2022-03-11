@@ -1,52 +1,52 @@
 package com.backinfile.loop;
 
 import com.backinfile.loop.actor.WorldView;
-import com.backinfile.loop.core.GameManager;
+import com.backinfile.loop.core.LevelManager;
 import com.backinfile.loop.core.LoopInputProcessor;
-import com.backinfile.loop.core.WorldData;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.viewport.FitViewport;
-import com.badlogic.gdx.utils.viewport.ScalingViewport;
 
 /**
- * ÓÎÏ·Ö÷³ÌĞòµÄÈë¿ÚÀà, ÊµÏÖ ApplicationListener ½Ó¿Ú
+ * æ¸¸æˆä¸»ç¨‹åºçš„å…¥å£ç±», å®ç° ApplicationListener æ¥å£
  */
 public class MainGame extends Game {
-	private Stage stage;
-	private OrthographicCamera camera;
+    private Stage stage;
+    private OrthographicCamera camera;
 
-	@Override
-	public void create() {
+    @Override
+    public void create() {
 
-		// ³õÊ¼»¯×ÊÔ´£¬Êı¾İ
-		Res.init();
-		GameManager.instance.init();
+        // åˆå§‹åŒ–èµ„æºï¼Œæ•°æ®
+        Res.init();
+        LevelManager.instance.init();
 //		Gdx.input.setCursorImage(Res.Cursor, 0, 0);
 
-		// ³õÊ¼»¯³¡¾°
-		camera = new OrthographicCamera();
-		stage = new Stage(new FitViewport(Settings.SCREEN_WIDTH, Settings.SCREEN_HEIGHT, camera));
-		stage.addActor(new WorldView());
-		Gdx.input.setInputProcessor(new LoopInputProcessor());
-	}
+        // åˆå§‹åŒ–åœºæ™¯
+        camera = new OrthographicCamera();
+        stage = new Stage(new FitViewport(Settings.SCREEN_WIDTH, Settings.SCREEN_HEIGHT, camera));
+        stage.addActor(new WorldView());
+        Gdx.input.setInputProcessor(new LoopInputProcessor());
 
-	@Override
-	public void render() {
-		Gdx.gl.glClearColor(0.1f, 0.1f, 0.1f, 1);
-		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-		stage.act();
-		stage.draw();
-	}
 
-	@Override
-	public void resize(int width, int height) {
-		super.resize(width, height);
-		stage.getViewport().update(width, height);
-	}
+        LevelManager.instance.nextLevel();
+    }
+
+    @Override
+    public void render() {
+        Gdx.gl.glClearColor(0.1f, 0.1f, 0.1f, 1);
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+        stage.act();
+        stage.draw();
+    }
+
+    @Override
+    public void resize(int width, int height) {
+        super.resize(width, height);
+        stage.getViewport().update(width, height);
+    }
 
 }

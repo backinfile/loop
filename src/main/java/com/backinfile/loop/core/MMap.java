@@ -2,77 +2,83 @@ package com.backinfile.loop.core;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.StringJoiner;
 import java.util.function.BiConsumer;
 
 public class MMap<T extends Movable> {
-	private int width;
-	private int height;
-	private List<T> valueList = new ArrayList<>();
+    private final int width;
+    private final int height;
+    private final List<T> valueList = new ArrayList<>();
 
-	public MMap(int width, int height) {
-		this.width = width;
-		this.height = height;
-	}
+    public MMap(int width, int height) {
+        this.width = width;
+        this.height = height;
+    }
 
-	public void add(T value) {
-		checkSize(value.pos.x, value.pos.y);
-		valueList.add(value);
-	}
+    public void add(T value) {
+        checkSize(value.pos.x, value.pos.y);
+        valueList.add(value);
+    }
 
-	public T get(int x, int y) {
-		checkSize(x, y);
-		for (T value : valueList) {
-			if (value.pos.x == x && value.pos.y == y) {
-				return value;
-			}
-		}
-		return null;
-	}
+    public T get(int x, int y) {
+        checkSize(x, y);
+        for (T value : valueList) {
+            if (value.pos.x == x && value.pos.y == y) {
+                return value;
+            }
+        }
+        return null;
+    }
 
-	public T get(Pos pos) {
-		return get(pos.x, pos.y);
-	}
+    public int size() {
+        return valueList.size();
+    }
 
-	public int getHeight() {
-		return height;
-	}
+    public List<T> getUnitList() {
+        return Collections.unmodifiableList(valueList);
+    }
 
-	public int getWidth() {
-		return width;
-	}
+    public T get(Pos pos) {
+        return get(pos.x, pos.y);
+    }
 
-	public boolean isFit(int x, int y) {
-		if (0 <= x && x < width && 0 <= y && y < height) {
-			return true;
-		}
-		return false;
-	}
+    public int getHeight() {
+        return height;
+    }
 
-	public boolean isFit(Pos pos) {
-		return isFit(pos.x, pos.y);
-	}
+    public int getWidth() {
+        return width;
+    }
 
-	private void checkSize(int x, int y) {
-		if (!isFit(x, y)) {
-			String msg = MessageFormat.format("³¬³öMMap³¤¶ÈÁË width={0},height={1},x={2},y={3}", width, height, x, y);
-			throw new SysException(msg);
-		}
-	}
+    public boolean isFit(int x, int y) {
+        return 0 <= x && x < width && 0 <= y && y < height;
+    }
 
-	public void forEach(BiConsumer<Pos, T> func) {
-		for (T value : new ArrayList<>(valueList)) {
-			func.accept(value.pos, value);
-		}
-	}
+    public boolean isFit(Pos pos) {
+        return isFit(pos.x, pos.y);
+    }
 
-	@Override
-	public String toString() {
-		StringJoiner sj = new StringJoiner("\n");
-		forEach((pos, value) -> {
-			sj.add("(" + pos.x + "," + pos.y + "," + value.toString() + ")");
-		});
-		return sj.toString();
-	}
+    private void checkSize(int x, int y) {
+        if (!isFit(x, y)) {
+            String msg = MessageFormat.format("è¶…å‡ºMMapé•¿åº¦äº† width={0},height={1},x={2},y={3}", width, height, x, y);
+            throw new SysException(msg);
+        }
+    }
+
+    public void forEach(BiConsumer<Pos, T> func) {
+        for (T value : new ArrayList<>(valueList)) {
+            func.accept(value.pos, value);
+        }
+    }
+
+    @Override
+    public String toString() {
+        StringJoiner sj = new StringJoiner("\n");
+        forEach((pos, value) -> {
+            sj.add("(" + pos.x + "," + pos.y + "," + value.toString() + ")");
+        });
+        return sj.toString();
+    }
 }

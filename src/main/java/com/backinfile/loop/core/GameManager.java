@@ -1,240 +1,266 @@
 package com.backinfile.loop.core;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-
+import com.backinfile.loop.Log;
 import com.backinfile.loop.Res;
 import com.backinfile.loop.actor.WorldView;
 import com.backinfile.loop.core.Cube.CubeType;
 import com.backinfile.loop.support.Utils;
 
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+
 public class GameManager {
-	public static final GameManager instance = new GameManager();
+    public static final GameManager instance = new GameManager();
 
-	public WorldData worldData;
-	public WorldView worldView;
-	private Cube human;
-	private Cube trans;
+    public WorldData worldData;
+    public WorldView worldView;
+    private Cube human;
+    private Cube trans;
 
-	private LinkedList<History> histories = new LinkedList<History>();
+    private final LinkedList<History> histories = new LinkedList<>();
 
-	private static final int[] dx = new int[] { 0, 0, -1, 1 };
-	private static final int[] dy = new int[] { 1, -1, 0, 0 };
+    private static final int[] dx = new int[]{0, 0, -1, 1};
+    private static final int[] dy = new int[]{1, -1, 0, 0};
 
-	public void init() {
-		worldData = WorldData.parse(Res.getDefaultWorldConf());
+    public void initLevel(WorldData data) {
+        histories.clear();
+        human = null;
+        trans = null;
 
-		worldData.actualMap.forEach((pos, cube) -> {
-			if (cube.type == CubeType.Human) {
-				human = cube;
-			} else if (cube.type == CubeType.Trans) {
-				trans = cube;
-			}
-		});
-	}
 
-	public void resetGame() {
-		worldData.actualMap.forEach((pos, cube) -> {
-			cube.resetPosition();
-		});
-		histories.clear();
-	}
+        worldData = data;
 
-	public void undo() {
-		if (!histories.isEmpty()) {
-			History history = histories.pollLast();
-			history.playback();
-		}
-	}
+        worldData.actualMap.forEach((pos, cube) -> {
+            if (cube.type == CubeType.Human) {
+                human = cube;
+            } else if (cube.type == CubeType.Trans) {
+                trans = cube;
+            }
+        });
 
-	public WorldData getWorldData() {
-		return worldData;
-	}
+        worldView.init(data);
+    }
 
-	public Pos getWorldSize() {
-		return new Pos(Res.CUBE_SIZE * worldData.baseWidth, Res.CUBE_SIZE * worldData.baseWidth);
-	}
-	
-	private boolean moveCube(Pos curPos, Pos d, ArrayList<Pos> passPosList) {
-		while (true) {
-			Pos nextPos = getNextPos(curPos, d);
-			if (nextPos != null && passPosList.contains(nextPos)) { // Ñ­»·´ï³É£¬ ²»¿ÉÒÔÒÆ¶¯
-				return false;
-			}
-			if (nextPos == null || isPosStop(nextPos)) { // Åöµ½Ç½ÁË
-				// ³¢ÊÔÕÒµ½Â·¾¶ÖĞµÄ·ÖĞÍ
-				for (Integer index : getSplitByTransPosList(passPosList)) {
-					Pos transPos = passPosList.get(index);
+    public void resetGame() {
+        worldData.actualMap.forEach((pos, cube) -> {
+            cube.resetPosition();
+        });
+        histories.clear();
+    }
 
-					ArrayList<Pos> newPassPosList = Utils.subList(passPosList, 0, index);
-					Pos edgeEmptyPos = getEdgeEmptyPos(d);
-					if (edgeEmptyPos != null) { // ÒÆ¶¯»òÍÆ¶¯³¢ÊÔ½øÈë·ÖĞÍ£¬Ã»ÓĞ¿¨ÔÚÇ½±ß
-						newPassPosList.add(edgeEmptyPos);
-						if (isPosEmpty(edgeEmptyPos)) {
-							newPassPosList.add(edgeEmptyPos);
-							_moveCubePosList(newPassPosList);
-							// Ë³ÀûÒÆ¶¯»òÕßÍÆ¶¯½øÈë·½¿é
-							return true;
-						} else {
-							if (moveCube(edgeEmptyPos, d, new ArrayList<>(newPassPosList))) {
-								// ÒÆ¶¯»òÍÆ¶¯³¢ÊÔ½øÈë·½¿é ³É¹¦
-								return true;
-							}
-						}
-					}
-					// ³¢ÊÔÍÌµô·½¿é
-					if (index < passPosList.size() - 1) {
-						edgeEmptyPos = getEdgeEmptyPos(d.getOppsite());
-						if (edgeEmptyPos != null) {
-							newPassPosList.add(transPos);
-							newPassPosList.add(passPosList.get(index + 1));
-							newPassPosList.add(edgeEmptyPos);
-							if (isPosEmpty(edgeEmptyPos)) { // ·ÖĞÍÄÚ²¿Îª¿Õ£¬Ö±½ÓÒÆ¶¯¹ıÈ¥
-								_moveCubePosList(newPassPosList);
-								return true;
-							}
-							if (moveCube(edgeEmptyPos, d.getOppsite(), new ArrayList<Pos>(newPassPosList))) {
-								// ·ÖĞÍÄÚ²¿¿ÉÒÔÒÆ¶¯
-								return true;
-							}
-						}
-					}
-				}
-				// ÍÆ¶¯Ç½£¬Ê§°Ü
-				return false;
-			}
-			if (isPosEmpty(nextPos)) {
-				passPosList.add(nextPos);
-				_moveCubePosList(passPosList);
-				// Ë³ÀûÒÆ¶¯»òÕßÍÆ¶¯
-				return true;
-			}
-			passPosList.add(nextPos);
-			curPos = nextPos;
-		}
-	}
+    public void undo() {
+        if (!histories.isEmpty()) {
+            History history = histories.pollLast();
+            history.playback();
+        }
+    }
 
-	private List<Integer> getSplitByTransPosList(List<Pos> posList) {
-		List<Integer> indexList = new ArrayList<>();
-		for (int i = posList.size() - 1; i >= 0; i--) {
-			if (isPosTrans(posList.get(i))) {
-				indexList.add(i);
-			}
-		}
-		return indexList;
-	}
+    public WorldData getWorldData() {
+        return worldData;
+    }
 
-	private void _moveCubePosList(ArrayList<Pos> posList) {
-		if (posList.isEmpty()) {
-			return;
-		}
+    public Pos getWorldSize() {
+        return new Pos(Res.CUBE_SIZE * worldData.baseWidth, Res.CUBE_SIZE * worldData.baseWidth);
+    }
 
-		// ¼ÇÂ¼²Ù×÷
-		List<Cube> cubes = new ArrayList<>();
-		for (Pos pos : posList) {
-			Cube cube = worldData.actualMap.get(pos);
-			if (cube != null) {
-				cubes.add(cube);
-			}
-		}
-		if (!cubes.isEmpty()) {
-			histories.addLast(History.getHistory(cubes));
-		}
+    private boolean moveCube(Pos curPos, Pos d, ArrayList<Pos> passPosList) {
+        while (true) {
+            Pos nextPos = getNextPos(curPos, d);
+            if (nextPos != null && passPosList.contains(nextPos)) { // å¾ªç¯è¾¾æˆï¼Œ ä¸å¯ä»¥ç§»åŠ¨
+                return false;
+            }
+            if (nextPos == null || isPosStop(nextPos)) { // ç¢°åˆ°å¢™äº†
+                // å°è¯•æ‰¾åˆ°è·¯å¾„ä¸­çš„åˆ†å‹
+                for (Integer index : getSplitByTransPosList(passPosList)) {
+                    Pos transPos = passPosList.get(index);
 
-		// ½øĞĞÒÆ¶¯
-		for (int i = 0; i < posList.size() - 1; i++) {
-			posList.get(i).set(posList.get(i + 1));
-		}
-	}
+                    ArrayList<Pos> newPassPosList = Utils.subList(passPosList, 0, index);
+                    Pos edgeEmptyPos = getEdgeEmptyPos(d);
+                    if (edgeEmptyPos != null) { // ç§»åŠ¨æˆ–æ¨åŠ¨å°è¯•è¿›å…¥åˆ†å‹ï¼Œæ²¡æœ‰å¡åœ¨å¢™è¾¹
+                        newPassPosList.add(edgeEmptyPos);
+                        if (isPosEmpty(edgeEmptyPos)) {
+                            newPassPosList.add(edgeEmptyPos);
+                            _moveCubePosList(newPassPosList);
+                            // é¡ºåˆ©ç§»åŠ¨æˆ–è€…æ¨åŠ¨è¿›å…¥æ–¹å—
+                            return true;
+                        } else {
+                            if (moveCube(edgeEmptyPos, d, new ArrayList<>(newPassPosList))) {
+                                // ç§»åŠ¨æˆ–æ¨åŠ¨å°è¯•è¿›å…¥æ–¹å— æˆåŠŸ
+                                return true;
+                            }
+                        }
+                    }
+                    // å°è¯•åæ‰æ–¹å—
+                    if (index < passPosList.size() - 1) {
+                        edgeEmptyPos = getEdgeEmptyPos(d.getOppsite());
+                        if (edgeEmptyPos != null) {
+                            newPassPosList.add(transPos);
+                            newPassPosList.add(passPosList.get(index + 1));
+                            newPassPosList.add(edgeEmptyPos);
+                            if (isPosEmpty(edgeEmptyPos)) { // åˆ†å‹å†…éƒ¨ä¸ºç©ºï¼Œç›´æ¥ç§»åŠ¨è¿‡å»
+                                _moveCubePosList(newPassPosList);
+                                return true;
+                            }
+                            if (moveCube(edgeEmptyPos, d.getOppsite(), new ArrayList<Pos>(newPassPosList))) {
+                                // åˆ†å‹å†…éƒ¨å¯ä»¥ç§»åŠ¨
+                                return true;
+                            }
+                        }
+                    }
+                }
+                // æ¨åŠ¨å¢™ï¼Œå¤±è´¥
+                return false;
+            }
+            if (isPosEmpty(nextPos)) {
+                passPosList.add(nextPos);
+                _moveCubePosList(passPosList);
+                // é¡ºåˆ©ç§»åŠ¨æˆ–è€…æ¨åŠ¨
+                return true;
+            }
+            passPosList.add(nextPos);
+            curPos = nextPos;
+        }
+    }
 
-	public void moveHuman(int dura) {
-		Pos d = new Pos(dx[dura], dy[dura]);
-		Pos curPos = human.pos;
-		ArrayList<Pos> passPosList = new ArrayList<>();
-		passPosList.add(curPos);
-		moveCube(curPos, d, passPosList);
-	}
+    private List<Integer> getSplitByTransPosList(List<Pos> posList) {
+        List<Integer> indexList = new ArrayList<>();
+        for (int i = posList.size() - 1; i >= 0; i--) {
+            if (isPosTrans(posList.get(i))) {
+                indexList.add(i);
+            }
+        }
+        return indexList;
+    }
 
-	private Pos getEdgeEmptyPos(Pos d) {
-		if (d.x == 0) {
-			for (int x = 0; x < worldData.baseWidth; x++) {
-				Pos pos = new Pos(x, d.y < 0 ? worldData.baseHeight - 1 : 0);
-				if (isPosEmpty(pos)) {
-					return pos;
-				}
-			}
-			for (int x = 0; x < worldData.baseWidth; x++) {
-				Pos pos = new Pos(x, d.y < 0 ? worldData.baseHeight - 1 : 0);
-				if (isPosPushable(pos)) {
-					return worldData.actualMap.get(pos).pos;
-				}
-			}
-		} else {
-			for (int y = 0; y < worldData.baseHeight; y++) {
-				Pos pos = new Pos(d.x < 0 ? worldData.baseWidth - 1 : 0, y);
-				if (isPosEmpty(pos)) {
-					return pos;
-				}
-			}
-			for (int y = 0; y < worldData.baseHeight; y++) {
-				Pos pos = new Pos(d.x < 0 ? worldData.baseWidth - 1 : 0, y);
-				if (isPosPushable(pos)) {
-					return worldData.actualMap.get(pos).pos;
-				}
-			}
-		}
-		return null;
-	}
+    private void _moveCubePosList(ArrayList<Pos> posList) {
+        if (posList.isEmpty()) {
+            return;
+        }
 
-	private Pos getNextPos(Pos curPos, Pos d) {
-		Pos nextPos = curPos.getTransPos(d);
-		if (!worldData.actualMap.isFit(nextPos)) {
-			nextPos = trans.pos.getTransPos(d);
-			if (!worldData.actualMap.isFit(nextPos)) {
-				return null;
-			}
-		}
-		Cube cube = worldData.actualMap.get(nextPos);
-		if (cube != null) {
-			return cube.pos;
-		} else {
-			return nextPos;
-		}
-	}
+        // è®°å½•æ“ä½œ
+        List<Cube> cubes = new ArrayList<>();
+        for (Pos pos : posList) {
+            Cube cube = worldData.actualMap.get(pos);
+            if (cube != null) {
+                cubes.add(cube);
+            }
+        }
+        if (!cubes.isEmpty()) {
+            histories.addLast(History.getHistory(cubes));
+        }
 
-	private void move(Pos pos, Pos d) {
-		Cube cube = worldData.actualMap.get(pos);
-		cube.pos.trans(d);
-	}
+        // è¿›è¡Œç§»åŠ¨
+        for (int i = 0; i < posList.size() - 1; i++) {
+            posList.get(i).set(posList.get(i + 1));
+        }
+    }
 
-	private boolean isPosEmpty(Pos pos) {
-		Cube cube = worldData.actualMap.get(pos);
-		return cube == null;
-	}
+    public void moveHuman(int dura) {
+        Pos d = new Pos(dx[dura], dy[dura]);
+        Pos curPos = human.pos;
+        ArrayList<Pos> passPosList = new ArrayList<>();
+        passPosList.add(curPos);
+        moveCube(curPos, d, passPosList);
+        if (checkWin()) {
+            LevelManager.instance.nextLevel();
+        }
+    }
 
-	private boolean isPosPushable(Pos pos) {
-		Cube cube = worldData.actualMap.get(pos);
-		if (cube == null) {
-			return false;
-		}
-		return cube.type == CubeType.Rock || cube.type == CubeType.Trans || cube.type == CubeType.Human;
-	}
+    private boolean checkWin() {
+        if (worldData.floorMap.getUnitList().isEmpty()) {
+            return false;
+        }
 
-	private boolean isPosTrans(Pos pos) {
-		Cube cube = worldData.actualMap.get(pos);
-		if (cube == null) {
-			return false;
-		}
-		return cube.type == CubeType.Trans;
-	}
+        for (Cube cube : worldData.floorMap.getUnitList()) {
+            if (worldData.actualMap.get(cube.pos) == null) {
+                return false;
+            }
+        }
+        Log.game.info("map {} win", worldData.name);
+        return true;
+    }
 
-	private boolean isPosStop(Pos pos) {
-		Cube cube = worldData.actualMap.get(pos);
-		if (cube == null) {
-			return false;
-		}
-		return cube.type == CubeType.Wall;
-	}
+
+    private Pos getEdgeEmptyPos(Pos d) {
+        if (d.x == 0) {
+            for (int x = 0; x < worldData.baseWidth; x++) {
+                Pos pos = new Pos(x, d.y < 0 ? worldData.baseHeight - 1 : 0);
+                if (isPosEmpty(pos)) {
+                    return pos;
+                }
+            }
+            for (int x = 0; x < worldData.baseWidth; x++) {
+                Pos pos = new Pos(x, d.y < 0 ? worldData.baseHeight - 1 : 0);
+                if (isPosPushable(pos)) {
+                    return worldData.actualMap.get(pos).pos;
+                }
+            }
+        } else {
+            for (int y = 0; y < worldData.baseHeight; y++) {
+                Pos pos = new Pos(d.x < 0 ? worldData.baseWidth - 1 : 0, y);
+                if (isPosEmpty(pos)) {
+                    return pos;
+                }
+            }
+            for (int y = 0; y < worldData.baseHeight; y++) {
+                Pos pos = new Pos(d.x < 0 ? worldData.baseWidth - 1 : 0, y);
+                if (isPosPushable(pos)) {
+                    return worldData.actualMap.get(pos).pos;
+                }
+            }
+        }
+        return null;
+    }
+
+    private Pos getNextPos(Pos curPos, Pos d) {
+        Pos nextPos = curPos.getTransPos(d);
+        if (!worldData.actualMap.isFit(nextPos)) {
+            nextPos = trans.pos.getTransPos(d);
+            if (!worldData.actualMap.isFit(nextPos)) {
+                return null;
+            }
+        }
+        Cube cube = worldData.actualMap.get(nextPos);
+        if (cube != null) {
+            return cube.pos;
+        } else {
+            return nextPos;
+        }
+    }
+
+    private void move(Pos pos, Pos d) {
+        Cube cube = worldData.actualMap.get(pos);
+        cube.pos.trans(d);
+    }
+
+    private boolean isPosEmpty(Pos pos) {
+        Cube cube = worldData.actualMap.get(pos);
+        return cube == null;
+    }
+
+    private boolean isPosPushable(Pos pos) {
+        Cube cube = worldData.actualMap.get(pos);
+        if (cube == null) {
+            return false;
+        }
+        return cube.type == CubeType.Rock || cube.type == CubeType.Trans || cube.type == CubeType.Human;
+    }
+
+    private boolean isPosTrans(Pos pos) {
+        Cube cube = worldData.actualMap.get(pos);
+        if (cube == null) {
+            return false;
+        }
+        return cube.type == CubeType.Trans;
+    }
+
+    private boolean isPosStop(Pos pos) {
+        Cube cube = worldData.actualMap.get(pos);
+        if (cube == null) {
+            return false;
+        }
+        return cube.type == CubeType.Wall;
+    }
 
 }
